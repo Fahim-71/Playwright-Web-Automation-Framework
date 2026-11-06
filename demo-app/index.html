@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Demo Shop</title>
+<style>body{font-family:Arial;margin:30px}.err{color:#b00020}.hidden{display:none}.card{border:1px solid #ccc;padding:8px;margin:6px;display:inline-block}</style></head>
+<body>
+<!-- LOGIN -->
+<section id="login-page">
+  <h1>Demo Shop Login</h1>
+  <input id="username" placeholder="Username"><br><br>
+  <input id="password" type="password" placeholder="Password"><br><br>
+  <button id="login-btn">Login</button>
+  <p id="login-error" class="err"></p>
+</section>
+<!-- PRODUCTS -->
+<section id="products-page" class="hidden">
+  <h1 id="page-title">Products</h1>
+  <button id="logout-btn">Logout</button>
+  <button id="cart-link">Cart (<span id="cart-count">0</span>)</button>
+  <div id="product-list"></div>
+</section>
+<!-- CART -->
+<section id="cart-page" class="hidden">
+  <h1>Your Cart</h1>
+  <ul id="cart-items"></ul>
+  <p>Total: $<span id="cart-total">0.00</span></p>
+  <button id="back-btn">Continue Shopping</button>
+  <button id="checkout-btn">Checkout</button>
+</section>
+<!-- CHECKOUT -->
+<section id="checkout-page" class="hidden">
+  <h1>Checkout</h1>
+  <input id="first-name" placeholder="First name"><br><br>
+  <input id="last-name" placeholder="Last name"><br><br>
+  <input id="postal-code" placeholder="Postal code"><br><br>
+  <button id="finish-btn">Finish</button>
+  <p id="checkout-error" class="err"></p>
+</section>
+<section id="done-page" class="hidden"><h1 id="success-msg">Thank you for your order!</h1></section>
+<script>
+const USERS={standard_user:"secret123",locked_user:"secret123"};
+const PRODUCTS=[{id:1,name:"Backpack",price:29.99},{id:2,name:"T-Shirt",price:15.5},{id:3,name:"Water Bottle",price:9.99}];
+let cart=[];
+const $=id=>document.getElementById(id);
+function show(p){["login-page","products-page","cart-page","checkout-page","done-page"].forEach(x=>$(x).classList.toggle("hidden",x!==p));}
+$("login-btn").onclick=()=>{
+  const u=$("username").value.trim(),p=$("password").value;
+  if(!u||!p){$("login-error").textContent="Username and password are required";return;}
+  if(u==="locked_user"){$("login-error").textContent="This user has been locked out";return;}
+  if(USERS[u]!==p){$("login-error").textContent="Invalid username or password";return;}
+  $("login-error").textContent="";show("products-page");};
+$("logout-btn").onclick=()=>{cart=[];render();show("login-page");$("username").value="";$("password").value="";};
+$("product-list").innerHTML=PRODUCTS.map(p=>`<div class="card"><h3 class="product-name">${p.name}</h3><p class="product-price">$${p.price.toFixed(2)}</p><button id="add-${p.id}" class="add-btn">Add to cart</button></div>`).join("");
+PRODUCTS.forEach(p=>$("add-"+p.id).onclick=()=>{cart.push(p);render();});
+function render(){
+  $("cart-count").textContent=cart.length;
+  $("cart-items").innerHTML=cart.map((p,i)=>`<li class="cart-item">${p.name} - $${p.price.toFixed(2)} <button class="remove-btn" id="remove-${i}">Remove</button></li>`).join("");
+  cart.forEach((_,i)=>$("remove-"+i).onclick=()=>{cart.splice(i,1);render();});
+  $("cart-total").textContent=cart.reduce((s,p)=>s+p.price,0).toFixed(2);}
+$("cart-link").onclick=()=>show("cart-page");
+$("back-btn").onclick=()=>show("products-page");
+$("checkout-btn").onclick=()=>{ if(!cart.length)return; show("checkout-page");};
+$("finish-btn").onclick=()=>{
+  if(!$("first-name").value||!$("last-name").value||!$("postal-code").value){$("checkout-error").textContent="All fields are required";return;}
+  cart=[];render();show("done-page");};
+</script></body></html>
